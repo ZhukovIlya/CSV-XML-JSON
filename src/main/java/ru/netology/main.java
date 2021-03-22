@@ -23,9 +23,11 @@ import javax.xml.transform.stream.StreamResult;
 import java.io.*;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
-public class main {
+public class Main {
     public static void main(String[] args) {
 
         List<String[]> csvTexts = new ArrayList<>();
@@ -37,104 +39,20 @@ public class main {
 
         String fileNameXML = "data.xml";
         File fileXML = new File(fileNameXML);
+        Employee empl = new Employee(1, "John", "Smith", "USA", 25);
+        Employee empl1 = new Employee(2, "Inav", "Petrov", "RU", 23);
+        Employee empl2 = new Employee(3, "John", "Smith", "USA", 25);
+        Employee empl3 = new Employee(4, "Inav", "Petrov", "RU", 23);
 
-
-        // Работа с XML
-        // Создание файла
-        try {
-            if (fileXML.createNewFile()) {
-            }
-        } catch (IOException ex) {
-            System.out.println(ex.getMessage());
-        }
-
-        try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            Document doc = builder.newDocument();
-
-            Element root = doc.createElement("root");
-            doc.appendChild(root);
-
-            Element staff = doc.createElement("staff");
-            root.appendChild(staff);
-
-            Element employee1 = doc.createElement("employee");
-            staff.appendChild(employee1);
-
-            Element id = doc.createElement("id");
-            id.appendChild(doc.createTextNode("1"));
-            employee1.appendChild(id);
-
-
-            Element firstname = doc.createElement("firstname");
-            firstname.appendChild(doc.createTextNode("John"));
-            employee1.appendChild(firstname);
-
-            Element lastname = doc.createElement("lastname");
-            lastname.appendChild(doc.createTextNode("Smith"));
-            employee1.appendChild(lastname);
-
-            Element country = doc.createElement("country");
-            country.appendChild(doc.createTextNode("USA"));
-            employee1.appendChild(country);
-
-            Element age = doc.createElement("age");
-            age.appendChild(doc.createTextNode("25"));
-            employee1.appendChild(age);
-
-// 22222222222222222222222222222
-
-
-            Element employee2 = doc.createElement("employee");
-            staff.appendChild(employee2);
-
-            Element id2 = doc.createElement("id");
-            id2.appendChild(doc.createTextNode("3"));
-            employee2.appendChild(id2);
-
-
-            Element firstname2 = doc.createElement("firstname");
-            firstname2.appendChild(doc.createTextNode("Inav"));
-            employee2.appendChild(firstname2);
-
-            Element lastname2 = doc.createElement("lastname");
-            lastname2.appendChild(doc.createTextNode("Petrov"));
-            employee2.appendChild(lastname2);
-
-            Element country2 = doc.createElement("country");
-            country2.appendChild(doc.createTextNode("RU"));
-            employee2.appendChild(country2);
-
-            Element age2 = doc.createElement("age");
-            age2.appendChild(doc.createTextNode("23"));
-            employee2.appendChild(age2);
-
-
-            TransformerFactory transformerFactory = TransformerFactory.newInstance();
-            Transformer transformer = transformerFactory.newTransformer();
-            DOMSource source = new DOMSource(doc);
-
-            StreamResult result = new StreamResult(fileXML);
-            transformer.transform(source, result);
-
-
-        } catch (ParserConfigurationException e) {
-            e.printStackTrace();
-        } catch (TransformerConfigurationException e) {
-            e.printStackTrace();
-        } catch (TransformerException e) {
-            e.printStackTrace();
-        }
-
-
-        // чтение XML
+        creatureXML(fileXML);
+        addFileXml(fileXML, empl);
+        addFileXml(fileXML, empl1);
+        addFileXml(fileXML, empl2);
+        addFileXml(fileXML, empl3);
 
         List<Employee> listXML = parseXML(columnMapping, fileNameXML);
         String json1 = listToJson(listXML);
-        writeString(json1,"data1.json");
-
-        // Работа с CSV
+        writeString(json1, "data1.json");
 
         try (CSVWriter writer = new CSVWriter(new FileWriter(fileNameCSV))) {
             for (String[] text : csvTexts) {
@@ -152,9 +70,67 @@ public class main {
 
     }
 
+
+    private static void addFileXml(File fileXML, Employee empl) {
+
+        try {
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document doc = builder.parse(fileXML);
+            Node node = doc.getDocumentElement();
+            NodeList nodeList = node.getChildNodes();
+            Node node_ = nodeList.item(0);
+            System.out.println(node_.getNodeName());
+
+            Element employee = doc.createElement("employee");
+            node_.appendChild(employee);
+
+            Element id = doc.createElement("id");
+            id.appendChild(doc.createTextNode(String.valueOf(empl.id)));
+            employee.appendChild(id);
+
+
+            Element firstname = doc.createElement("firstname");
+            firstname.appendChild(doc.createTextNode(empl.firstName));
+            employee.appendChild(firstname);
+
+            Element lastname = doc.createElement("lastname");
+            lastname.appendChild(doc.createTextNode(empl.lastName));
+            employee.appendChild(lastname);
+
+            Element country = doc.createElement("country");
+            country.appendChild(doc.createTextNode(empl.country));
+            employee.appendChild(country);
+
+            Element age = doc.createElement("age");
+            age.appendChild(doc.createTextNode(String.valueOf(empl.age)));
+            employee.appendChild(age);
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+            DOMSource source = new DOMSource(doc);
+
+            StreamResult result = new StreamResult(fileXML);
+            transformer.transform(source, result);
+
+
+        } catch (ParserConfigurationException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (SAXException e) {
+            e.printStackTrace();
+        } catch (TransformerConfigurationException e) {
+            e.printStackTrace();
+        } catch (TransformerException e) {
+            e.printStackTrace();
+        }
+    }
+
+
     private static List<Employee> parseXML(String[] columnMapping, String fileNameXML) {
         List<Employee> list = new ArrayList<>();
-        List<String> el = new ArrayList<>();
+//        List<String> el = new ArrayList<>();
+        Queue<String> collection = new LinkedList<>();
 
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -174,13 +150,13 @@ public class main {
                                 Node node2 = nodeList2.item(q);
                                 if (Node.ELEMENT_NODE == node2.getNodeType()) {
                                     NodeList nodeList3 = node2.getChildNodes();
-                                    el.add(node2.getTextContent());
-                                    }
+                                    collection.add(node2.getTextContent());
                                 }
                             }
                         }
                     }
                 }
+            }
         } catch (ParserConfigurationException e) {
             e.printStackTrace();
         } catch (IOException n) {
@@ -188,10 +164,49 @@ public class main {
         } catch (SAXException m) {
             m.printStackTrace();
         }
-        list.add(new Employee(Integer.parseInt(el.get(0)),el.get(1), el.get(2), el.get(3),Integer.parseInt(el.get(4))));
-        list.add(new Employee(Integer.parseInt(el.get(5)),el.get(6), el.get(7), el.get(8),Integer.parseInt(el.get(9))));
+        for (int i = 0; collection.size() / 5 > i; ) {
+            list.add(new Employee(Integer.parseInt(collection.poll()), collection.poll(), collection.poll(), collection.poll(), Integer.parseInt(collection.poll())));
+
+
+        }
         return list;
 
+    }
+
+    private static void creatureXML(File fileXML) {
+        try {
+            if (fileXML.createNewFile()) {
+            }
+        } catch (IOException ex) {
+            System.out.println(ex.getMessage());
+        }
+
+        try {
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document doc = builder.newDocument();
+
+            Element root = doc.createElement("root");
+            doc.appendChild(root);
+
+            Element staff = doc.createElement("staff");
+            root.appendChild(staff)
+            ;
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+            DOMSource source = new DOMSource(doc);
+
+            StreamResult result = new StreamResult(fileXML);
+            transformer.transform(source, result);
+
+
+        } catch (ParserConfigurationException e) {
+            e.printStackTrace();
+        } catch (TransformerConfigurationException e) {
+            e.printStackTrace();
+        } catch (TransformerException e) {
+            e.printStackTrace();
+        }
     }
 
     private static void writeString(String json, String fileName) {

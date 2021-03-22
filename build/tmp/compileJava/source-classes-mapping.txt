@@ -1,5 +1,5 @@
-ru/netology/main.java
- ru.netology.main
- ru.netology.main$1
 ru/netology/Employee.java
  ru.netology.Employee
+ru/netology/Main.java
+ ru.netology.Main
+ ru.netology.Main$1
